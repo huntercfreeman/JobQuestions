@@ -1,0 +1,49 @@
+﻿<div>
+    <h1>
+        Magic 8 Ball
+    </h1>
+
+    
+
+    @if (!IsLoading)
+    {
+        <svg height="600" width="600">
+            <g>
+                <circle cx="300" cy="300" r="240" stroke="black" stroke-width="3" fill="black" />
+                <circle cx="300" cy="300" r="120" stroke="black" stroke-width="3" fill="darkslategray" />
+                <polygon points="400,240 200,240, 300,400" style="fill:blue;stroke:purple;stroke-width:1" />
+                @((MarkupString)DisplayResponse)
+            </g>
+        </svg>
+    }
+    else
+    {
+
+        <audio autoplay loop
+               src="content/ShakeAudio.mp3">
+        </audio>
+        <svg height="600" width="600" style="margin-left:@MarginNumber">
+            <g>
+
+                @*<embed src="content/ShakeAudio.mp3" />*@
+                <audio src="content/ShakeAudio.mp3" />
+                <circle cx="300" cy="300" r="240" stroke="black" stroke-width="3" fill="black" />
+                <circle cx="300" cy="300" r="120" stroke="black" stroke-width="3" fill="white" />
+                <text x='50%' y='50%' text-anchor='middle' fill='black' stroke='black' stroke-width='.5px' dy='.3em' font-size='100'>8</text>
+
+                <polygon points="350,210 250,210, 250,235, 350,235" style="fill:white;stroke:black;stroke-width:1" />
+                <polygon points="@LoadingPosition,210 250,210, 250,235, @LoadingPosition,235" style="fill:blue;stroke:black;stroke-width:1" />
+                <text x='50%' y="37%" text-anchor='middle' fill='black' stroke='black' stroke-width='.5px' dy='.3em' font-size='18'>Shaking...</text>
+
+            </g>
+        </svg>
+
+
+    }
+
+    <div>
+        <input @bind="UserQuestion" placeholder="Type a Question Here" />
+        <div @onclick="AskQuestion" class="btn btn-primary">Ask Question</div>
+    </div>
+
+</div>
