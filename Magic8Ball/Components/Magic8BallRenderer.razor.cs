@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Toolbelt.Blazor.SpeechSynthesis;
 
@@ -12,17 +13,17 @@ namespace Magic8Ball.Components
         [Inject]
         public SpeechSynthesis SpeechSynthesis { get; set; }
 
-        private readonly Random rng = new Random();
+        private readonly Random rnd = new Random();
 
-        public string UserQuestion { get; set; }
-        public List<string> Responses { get; set; } = new List<string>();
-        public string SelectedResponse { get; set; } = "";
-        public int LoadingPosition { get; set; } = 250;
-        public int AnimationNumber { get; set; }
-        public int MarginNumber { get; set; }
-        public bool IsLoading { get; set; }
+        private string UserQuestion { get; set; }
+        private List<string> Responses { get; set; } = new List<string>();
+        private string SelectedResponse { get; set; } = String.Empty;
+        private int LoadingPosition { get; set; } = 250;
+        private int MarginNumber { get; set; }
+        private bool IsLoading { get; set; }
+        private CancellationTokenSource CancellationTokenSource { get; set; }
 
-        public string DisplayResponse 
+        private string DisplayResponse 
         { 
             get
             {
@@ -50,35 +51,41 @@ namespace Magic8Ball.Components
             AddDefaultResponses();
         }
 
-        public async void AskQuestion()
+        private async void AskQuestion()
         {
             if (string.IsNullOrEmpty(UserQuestion))
             {
                 return;
             }
             
-            int animationNumber = ++AnimationNumber;
-            
+            if(this.CancellationTokenSource != null) this.CancellationTokenSource.Cancel();
+
+            this.CancellationTokenSource = new CancellationTokenSource();
+
             LoadingPosition = 250;
             IsLoading = true;
             StateHasChanged();
-            await Animate(animationNumber);
-            if (animationNumber != AnimationNumber)
+            await Animate(this.CancellationTokenSource.Token).ContinueWith(async task => 
             {
-                return;
-            }
+                if (task.Status == TaskStatus.RanToCompletion)
+                {
+                    int index = rnd.Next(0, Responses.Count);
 
-            int index = rng.Next(0, Responses.Count);
+                    SelectedResponse = Responses[index];
 
-            SelectedResponse = Responses[index];
+                    IsLoading = false;
+                    await InvokeAsync(StateHasChanged);
 
-            IsLoading = false;
-            StateHasChanged();
-
-            SpeechSynthesis.Speak(SelectedResponse);
+                    SpeechSynthesis.Speak(SelectedResponse);
+                }
+                else
+                {
+                    Console.WriteLine("Faulted");
+                }
+            });
         }
 
-        public void AddResponseWithWeight(string response, int ticketCount)
+        private void AddResponseWithWeight(string response, int ticketCount)
         {
             for(int i = 0; i < ticketCount; i++)
             {
@@ -86,7 +93,7 @@ namespace Magic8Ball.Components
             }
         }
 
-        public void AddDefaultResponses()
+        private void AddDefaultResponses()
         {
             AddResponseWithWeight("It is certain.", 1);
             AddResponseWithWeight("It is decidedly so.", 1);
@@ -110,97 +117,23 @@ namespace Magic8Ball.Components
             AddResponseWithWeight("Very doubtful.", 1);
         }
 
-        public async Task Animate(int animationNumber)
+        private async Task Animate(CancellationToken cancellationToken)
         {
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
+            try
             {
-                return;
+                for(int i =260; i<=350; i += 10)
+                {
+                    await Task.Delay(100, cancellationToken);
+                    MarginNumber = MarginNumber == 10 ? 0 : 10;
+                    LoadingPosition = i;
+                    StateHasChanged();
+                }  
             }
-            MarginNumber = 10;
-            LoadingPosition = 260;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
+            catch(TaskCanceledException)
             {
-                return;
+                Console.WriteLine("Task Canceled");
+                throw;
             }
-            MarginNumber = 0;
-            LoadingPosition = 270;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 10;
-            LoadingPosition = 280;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 0;
-            LoadingPosition = 290;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 10;
-            LoadingPosition = 300;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 0;
-            LoadingPosition = 310;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 10;
-            LoadingPosition = 320;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 0;
-            LoadingPosition = 330;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 10;
-            LoadingPosition = 340;
-            StateHasChanged();
-
-            await Task.Delay(100);
-            if (animationNumber != AnimationNumber)
-            {
-                return;
-            }
-            MarginNumber = 0;
-            LoadingPosition = 350;
-            StateHasChanged();
         }
     }
 }

@@ -4,13 +4,16 @@
 @if (!DisplayMagic8Ball)
 {
     <div @onclick="(() => DisplayMagic8Ball = true)">
-        <img src="content/9140DtTDEVL._AC_SL1500_.jpg"/>
+        <img src="content/9140DtTDEVL._AC_SL1500_.jpg" />
     </div>
 }
 
 @if (DisplayMagic8Ball)
 {
-    <Magic8BallRenderer/>
+    <Magic8BallRenderer />
+    <Magic8BallRenderer />
+    <Magic8BallRenderer />
+    <Magic8BallRenderer />
 }
 
 @code
